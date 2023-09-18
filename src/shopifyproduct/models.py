@@ -61,10 +61,11 @@ class Product(models.Model):
 
 
 # method for updating
-@receiver(pre_save, sender=Product, weak=False, )
+@receiver(post_save, sender=Product, weak=False, )
 def presave_payment_model_check(sender, instance=None, created=False, **kwargs):
+    print(created)
     #Reference: https://stackoverflow.com/questions/11561722/django-what-is-the-role-of-modelstate
-    if instance._state.adding:
+    if created:
 
         # we would need to create the object
         import requests
@@ -87,8 +88,8 @@ def presave_payment_model_check(sender, instance=None, created=False, **kwargs):
             },
         }
 
-        print(instance.image._file.file)
-        attachment = base64.b64encode(instance.image._file.file.read()).decode()
+        print(instance.image.__dict__)
+        attachment = base64.b64encode(instance.image.file.read()).decode()
         response = requests.post(
             'https://gai-test.myshopify.com/admin/api/2023-07/products.json',
             headers=headers,
@@ -122,7 +123,7 @@ def presave_payment_model_check(sender, instance=None, created=False, **kwargs):
         )
 
         instance.description = artist_inspired_by
-        # instance.save()
+        instance.save()
 
         print ("Creating an object",response_image)
     else:
